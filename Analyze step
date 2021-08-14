@@ -1,0 +1,56 @@
+# 1. Check historical trend of member and casual
+tripdata_analyze = tripdata_clean_v01
+tripdata_analyze$started_at <- floor_date(tripdata_analyze$started_at, "month")
+ggplot(data = tripdata_analyze) + geom_bar(mapping = aes(x = started_at, fill = member_casual))+
+  labs(title = "Bike Used: Annual Members VS. Casual Riders", 
+       subtitle = "Times of bike used between two kind of users", x = "") +  
+  scale_y_continuous(name="Times of used", labels = scales::comma) +
+  theme(
+    legend.title = element_blank(),
+    legend.position = c(.88, .98),
+    legend.justification = c("right", "top"),
+    legend.margin = margin(8, 8, 8, 8),
+    axis.line = element_line(colour = "black"),
+    panel.background = element_rect(fill='transparent')
+       )
+       
+       
+# 2. Sum up riding time from two type of customer
+TD_sum <- aggregate(ride_length~started_at + member_casual + weekday, tripdata_analyze, sum)
+TD_sum$weekday <- factor(TD_sum$weekday,
+                levels = c("Monday","Tuesday","Wednesday","Thursday","Friday","Saturday","Sunday"))
+install.packages("zoo")
+library(zoo)
+TD_sum$started_at <- as.Date(as.yearmon(TD_sum$started_at))
+library(scales)
+options(scipen=999)
+ggplot(data = TD_sum, aes(x = started_at, y = ride_length/60, color = member_casual)) +
+  geom_line(lwd = 2 ) +
+  geom_point(size = 2, color = "black") +
+  labs(title = "Sum of Riding Time: Annual Members VS. Casual Riders", 
+       x = "", y = "Riding Time in Hours") +
+  facet_wrap(~weekday, nrow = 4) + 
+  scale_y_continuous(labels = label_number(suffix = " K", scale = 1e-3)) +
+  theme(
+    legend.title = element_blank(),
+    legend.position = c(.88, .10),
+    legend.margin = margin(8, 8, 8, 8),
+    axis.line = element_line(colour = "black"),
+    panel.background = element_rect(fill='transparent')
+       ) + 
+  scale_x_date(date_breaks = "3 months",date_labels = "%b, %y")
+
+
+# 3. Compare riding time between annual member and casual riders
+ggplot(data = tripdata_analyze, mapping = aes(x = member_casual, y = ride_length, fill = member_casual)) +
+  geom_boxplot() +
+  labs(title = "Compare Riding Time Between Annual Members and Casual Riders", x = "", y = "Riding Time in Minutes") +
+  coord_cartesian(ylim = c(0, 80)) +
+  theme(
+    legend.title = element_blank(),
+    legend.position = "none",
+    legend.margin = margin(8, 8, 8, 8),
+    axis.line = element_line(colour = "black"),
+    panel.background = element_rect(fill='transparent')
+       )
+ 
