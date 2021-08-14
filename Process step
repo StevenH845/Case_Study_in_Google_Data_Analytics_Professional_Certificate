@@ -1,0 +1,21 @@
+# 1. Import 12 csv data and merge them.
+tripdata = ldply(myfiles, read_csv)
+
+# 2. Check the data
+head(tripdata)
+
+# 3. Remove duplicate data
+tripdata_clean <- tripdata[!duplicated(tripdata$ride_id), ]
+
+# 4. Calculate the ride_length 
+library(lubridate) # Part of tidyverse, contain ymd_hm
+tripdata_clean$started_at <- ymd_hm(tripdata_clean$started_at)
+tripdata_clean$ended_at <- ymd_hm(tripdata_clean$ended_at)
+tripdata_clean$ride_length <- (ride_length = interval(tripdata_clean$started_at, tripdata_clean$ended_at) / minutes(1))
+
+# 5. Delete the rows which ride_length < 0, Because ended_at must later than started_at.
+tripdata_clean_v01 <- filter(tripdata_clean, ride_length>=0)
+
+# 6. ADD weekday column
+Sys.setlocale("LC_TIME", "English")
+tripdata_clean_v01$weekday <- weekdays(tripdata_clean_v01$started_at)
